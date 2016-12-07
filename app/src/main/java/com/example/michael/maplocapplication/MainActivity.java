@@ -151,6 +151,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //获取地图控件引用
 
+
+        mMapView = (MapView) findViewById(R.id.bmapView);
+        baiduMap = mMapView.getMap();
+        //普通地图
+        baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+
+        BDLocationListener listener = new MyLocationListener();
+        //此处需要注意：LocationClient类必须在主线程中声明。需要Context类型的参数。
+        //Context需要时全进程有效的context,推荐用getApplicationConext获取全进程有效的context
+
+        mLocationClient = new LocationClient(getApplicationContext());
+        //注册位置监听器
+        mLocationClient.registerLocationListener(listener);
+
         //判定权限，如果已取得权限，则初始化图层界面
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -168,19 +182,28 @@ public class MainActivity extends AppCompatActivity {
 //            //初始化定位
 //            initLocation();
             //requestWindowFeature(Window.FEATURE_NO_TITLE);
-            mMapView = (MapView) findViewById(R.id.bmapView);
-
-            baiduMap = mMapView.getMap();
-            //普通地图
-            baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+            LocationClientOption option = new LocationClientOption();
+            option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy
+            );//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
+            option.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系
+            int span = 5000; //5秒发送一次
+            option.setScanSpan(0);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的，与上一条span联系
+            option.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
+            option.setOpenGps(true);//可选，默认false,设置是否使用gps
+            option.setLocationNotify(true);//可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
+            option.setIsNeedLocationDescribe(true);//可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
+            option.setIsNeedLocationPoiList(true);//可选，默认false，设置是否需要POI结果，可以在BDLocation.getPoiList里得到
+            option.setIgnoreKillProcess(false);//可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
+            option.SetIgnoreCacheException(false);//可选，默认false，设置是否收集CRASH信息，默认收集
+            option.setEnableSimulateGps(false);//可选，默认false，设置是否需要过滤gps仿真结果，默认需要
+            option.setNeedDeviceDirect(true); //返回的定位结果包含手机机头方向
+            mLocationClient.setLocOption(option);
+            mLocationClient.start(); //启动位置请求
+            mLocationClient.requestLocation();//发送请求
+            //定位自己的位置
         }
 
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mMapView = (MapView) findViewById(R.id.bmapView);
 
-        baiduMap = mMapView.getMap();
-        //普通地图
-        baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
 
         bt4 = (ToggleButton)findViewById(R.id.btn_refresh);
         bt4.setOnClickListener(new View.OnClickListener() {
@@ -232,33 +255,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        BDLocationListener listener = new MyLocationListener();
-        //此处需要注意：LocationClient类必须在主线程中声明。需要Context类型的参数。
-        //Context需要时全进程有效的context,推荐用getApplicationConext获取全进程有效的context
 
-        mLocationClient = new LocationClient(getApplicationContext());
-        //注册位置监听器
-        mLocationClient.registerLocationListener(listener);
 
-        LocationClientOption option = new LocationClientOption();
-        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy
-        );//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
-        option.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系
-        int span = 5000; //5秒发送一次
-        option.setScanSpan(0);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的，与上一条span联系
-        option.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
-        option.setOpenGps(true);//可选，默认false,设置是否使用gps
-        option.setLocationNotify(true);//可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
-        option.setIsNeedLocationDescribe(true);//可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
-        option.setIsNeedLocationPoiList(true);//可选，默认false，设置是否需要POI结果，可以在BDLocation.getPoiList里得到
-        option.setIgnoreKillProcess(false);//可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
-        option.SetIgnoreCacheException(false);//可选，默认false，设置是否收集CRASH信息，默认收集
-        option.setEnableSimulateGps(false);//可选，默认false，设置是否需要过滤gps仿真结果，默认需要
-        option.setNeedDeviceDirect(true); //返回的定位结果包含手机机头方向
-        mLocationClient.setLocOption(option);
-        mLocationClient.start(); //启动位置请求
-        mLocationClient.requestLocation();//发送请求
-        //定位自己的位置
+
 
         bt3 = (Button)findViewById(R.id.btn_locate);
         bt3.setOnClickListener(new View.OnClickListener() {
