@@ -1,15 +1,20 @@
 package com.example.michael.maplocapplication;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
@@ -133,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
     double jingjie;
     String sender;
 
+    int ACCESS_COARSE_LOCATION_REQUEST_CODE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,8 +146,36 @@ public class MainActivity extends AppCompatActivity {
         //在使用SDK各组件之前初始化context信息，传入ApplicationContext
         //注意该方法要再setContentView方法之前实现
         SDKInitializer.initialize(getApplicationContext());
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         //获取地图控件引用
+
+        //判定权限，如果已取得权限，则初始化图层界面
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            //申请WRITE_EXTERNAL_STORAGE权限
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION},
+                    ACCESS_COARSE_LOCATION_REQUEST_CODE);
+        }
+        else {
+//            //初始化图层界面
+//            initView();
+//            //初始化定位
+//            initLocation();
+            //requestWindowFeature(Window.FEATURE_NO_TITLE);
+            mMapView = (MapView) findViewById(R.id.bmapView);
+
+            baiduMap = mMapView.getMap();
+            //普通地图
+            baiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+        }
+
+        //requestWindowFeature(Window.FEATURE_NO_TITLE);
         mMapView = (MapView) findViewById(R.id.bmapView);
 
         baiduMap = mMapView.getMap();
